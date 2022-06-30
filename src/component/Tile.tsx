@@ -1,6 +1,6 @@
 import '../style/tile.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { grid, checkWinner, whoseTurn } from '../store/reducer';
+import { grid, checkWinner, whoseTurn, reset } from '../store/reducer';
 import { useEffect, useState } from 'react';
 import { Game } from '../types';
 
@@ -12,9 +12,9 @@ const player: null | string = null;
 
 const Tile = ({ idx }: IProps) => {
     const dispatch = useDispatch();
-    const {win, game, resetGame, turn, botPlacement} = useSelector((state: Game) => state.grid);
+    const {win, resetGame, turn, botPlacement} = useSelector((state: Game) => state.grid);
     const [localState, setLocalState] = useState<null | string>(null);
-console.log(botPlacement)
+    console.log(`LOCSSS`, localState)
     const handleClick = (player: null | string) => {
         let user = player;
         !user ? user = 'X' : user = 'O';
@@ -28,20 +28,23 @@ console.log(botPlacement)
         if(resetGame) {
             setLocalState(null);
         }
+        if (idx === 8) {
+            dispatch(reset(false))
+        }
         
     }, [resetGame])
     
     useEffect(() => {
         if (turn !== 'X' && idx === botPlacement) {
-            console.log(`YEWDUBE`)
             setLocalState('O')
             dispatch(whoseTurn(turn));
+            dispatch(checkWinner(turn));
         }
     }, [botPlacement])
 
     return (
-            <div className='tile' key={idx} onClick={!win ? () => handleClick(player) : undefined}>
-                {localState ? localState : ''}
+            <div className='tile' key={idx} onClick={!win && !localState ? () => handleClick(player) : undefined}>
+                { localState ? localState : '' }
             </div>
     )
 }

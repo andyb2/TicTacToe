@@ -2,24 +2,20 @@ import '../style/grid.css'
 import { useSelector, useDispatch } from 'react-redux';
 import Tile from './Tile';
 import { useEffect } from 'react';
-import { reset, bot } from '../store/reducer';
+import { reset, bot, checkWinner } from '../store/reducer';
 import { Game } from '../types';
 
 const Grid = () => {
     const dispatch = useDispatch();
     const {game, win, turn} = useSelector((state: Game) => state.grid);
-    console.log(`f,kfm`, turn)
+    
     const newGame = () => {
-        dispatch(reset());
-    }
-
-    const botPlayer = () => {
-        dispatch(bot());
+        dispatch(reset(true));
     }
 
     useEffect(() => {
         if (turn === 'O') {
-            botPlayer();
+            dispatch(bot());
         }
     }, [turn])
 
