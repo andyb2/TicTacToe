@@ -1,21 +1,30 @@
-import '../style/grid.css'
+import '../style/grid.css';
 import { useSelector, useDispatch } from 'react-redux';
 import Tile from './Tile';
+import Score from './Score';
+import { botChoice } from '../botLogic';
 import { useEffect } from 'react';
-import { reset, bot, checkWinner } from '../store/reducer';
+import { bot, whoseTurn } from '../store/reducer';
 import { Game } from '../types';
 
 const Grid = () => {
     const dispatch = useDispatch();
-    const {game, win, turn} = useSelector((state: Game) => state.grid);
-    
-    const newGame = () => {
-        dispatch(reset(true));
-    }
+    const { game, victory, turn, gameCounter } = useSelector((state: Game) => state.grid);
+    const { win } = victory;
 
     useEffect(() => {
-        if (turn === 'O') {
-            dispatch(bot());
+        if ( gameCounter % 2 === 1) {
+            dispatch(whoseTurn('X'));
+            console.log(turn)
+        }
+    }, [gameCounter])
+
+    useEffect(() => {
+        if (turn === 'O' ) {     
+            if (!win) {
+                const chosenTile = botChoice(game);
+                dispatch(bot(chosenTile));
+            }
         }
     }, [turn])
 
@@ -24,23 +33,16 @@ const Grid = () => {
             <div className='grid'>
                 { game && game.map((item, idx) => {
                     return (
-                        <div key={idx}>
-                            <Tile idx={idx}/>
+                        <div className="tiles-parent" key={idx}>
+                            <Tile idx={idx} item={item}/>
                         </div>
                     )
                 })}
             </div>
-            <div>
-                <div onClick={() => newGame()}>New Game</div>
-                <div>
-                    <div>score</div>
-                    <div>X:</div>
-                    <div>O:</div>
-                </div>
-            </div>
+            <Score />
             { win &&
                 <div className='winner'>
-                    The winner is {win}
+                    { win === 'TIE' ? `Tie game!` : `${win} wins!` }
                 </div> 
             }
         </div>

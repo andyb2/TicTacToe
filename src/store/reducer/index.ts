@@ -9,10 +9,20 @@ interface GridPayload {
 
 interface IState {
     game: String[]
-    win: null
+    victory: {
+        win: null | string
+        winningSet: number[] | null
+    } 
+    scoreboard: {
+        [index: string]: number;
+        "X": number
+        "O": number
+        "T": number
+    }
     turn: string
     resetGame: boolean
     botPlacement: null | number
+    gameCounter: number
 }
 
 const initialState: IState = {
@@ -21,53 +31,71 @@ const initialState: IState = {
     '', '', '',
     '', '', '',
     ],
-    win: null,
+    victory: {
+        win: null,
+        winningSet: null,
+    },
+    scoreboard: {
+        'X': 0,
+        'O': 0,
+        'T': 0,
+    },
     turn: '',
     resetGame: false,
     botPlacement: null,
+    gameCounter: 0,
 }
-
-
 
 const winnerSlice = createSlice({
     name: 'grid',
     initialState,
     reducers: {
-        grid: (state, action: PayloadAction<GridPayload>) => {
+        // The users selected tile will be applied to the game board
+        playerChoice: (state, action: PayloadAction<GridPayload>) => {
             const gridCopy = [...state.game];
             gridCopy[action.payload.idx] = action.payload.user;
             state.game = gridCopy;
         },
+        // payload received is from the player that chose a tile last
+        // this will switch the turn to trigger the bot choosing a tile 
         whoseTurn: (state, action) => {
             const user = action.payload;
             let otherPlayer: string | null;
-            if (user === 'X') {
-                otherPlayer = 'O';
-            } else {
-                otherPlayer = 'X';
-            }
+            user === 'X' ? otherPlayer = 'O' : otherPlayer = 'X';
             state.turn = otherPlayer;
         },
-        checkWinner: (state, action) => {
+        // Checks to see if there is a winning tile set after each turn
+        checkWinner: (state, action: PayloadAction<string>) => {
             const gameCopy = [...state.game];
             let win = 0;
+            let winningIdx: number[] = [];
             for(let i=0; i<winConditions.length; i++) {
                 for(let j=0; j<winConditions[i].length; j++) {
                     if (gameCopy[winConditions[i][j]] === action.payload) {
+                        winningIdx.push(winConditions[i][j]);
                         win++;
                     }
                 }
-                if (win !== 3) {
+                if (win < 3) {
                     win = 0;
+                    winningIdx = [];
                 } else {
                     break;
                 }
             }
             
             if (win === 3) {
-                state.win = action.payload;
+                state.victory.winningSet = winningIdx;
+                state.victory.win = action.payload;
+                state.scoreboard[action.payload] = state.scoreboard[action.payload] += 1;
             } 
+            const tieGme = gameCopy.filter(tile => tile !== '');
+            if (tieGme.length === gameCopy.length) {
+                state.victory.win = 'TIE';
+                state.scoreboard['T'] = state.scoreboard['T'] += 1;
+            }
         },
+        // Triggering the reset will clear the state to its initial state
         reset: (state, action) => {
             if (action.payload) {
                 const emptyBoard = [
@@ -77,90 +105,24 @@ const winnerSlice = createSlice({
                 ];
                 state.resetGame = action.payload;
                 state.game = emptyBoard;
-                state.win = null;
+                state.victory.win = null;
+                state.victory.winningSet = null;
                 state.turn = '';
                 state.botPlacement = null;
-            } else {
-                state.resetGame = false;
             }
         },
-        bot: (state) => {
-            const gameCopy = [...state.game];
-            const opposingMoves = new Map()
-            let idxOfTile: number | null = null;
-            let winTile: number | null = null;
-            const chanceToWin = new Map();
-            // Check opposing players potential win status of the game
-            // If the opponent has a potential win the bot will block the tile
-            for (let i=0; i<winConditions.length; i++) {
-                for (let j=0; j<winConditions[i].length; j++) {
-                    // When the bot and player has 2 out 3 tiles selected from the winConditions arrays ignore it
-                    if (gameCopy[winConditions[i][j]] === 'O') {
-                        opposingMoves.clear();
-                        break;
-                    }
-                    // if theres an open tile in winConditions add the tile to opposingMoves
-                    if (gameCopy[winConditions[i][j]] === '') {
-                        opposingMoves.set(winConditions[i][j], gameCopy[winConditions[i][j]]);
-                    }
-                    // if the opposingMoves contains more than one tile it will be clearead... meaning
-                    // the bot doesn't have to block the tile because its not winnable 
-                    if (opposingMoves.size > 1) {
-                        opposingMoves.clear();
-                        break;
-                    }
-                }
-                // if the opposingMoves contains one tile the bot will block it to stop a win from X
-                if (opposingMoves.size === 1) {
-                    const catchTile = opposingMoves.keys().next().value;
-                    idxOfTile = catchTile;
-                    // gameCopy[catchTile] = state.turn;
-                    break;
-                };
-            }
-            if (idxOfTile) {
-                for (let i=0; i<winConditions.length; i++) {
-                    for (let j=0; j<winConditions[j].length; j++) {
-                        if (gameCopy[winConditions[i][j]] === 'X') {
-                            chanceToWin.clear();
-                            break;
-                        }
-                        if (gameCopy[winConditions[i][j]] === '') {
-                            chanceToWin.set([winConditions[i][j]], gameCopy[winConditions[i][j]])
-                        }
-                        if (chanceToWin.size > 1) {
-                            chanceToWin.clear();
-                        }
-                    }
-                    if (chanceToWin.size === 1) {
-                        const winningTile = opposingMoves.keys().next().value;
-                        winTile = winningTile;
-                        console.log(`WE HAVE A WINNER`, winningTile)
-                        gameCopy[winningTile] = state.turn;
-                        break;
-                    }
-                }
-            }
-            // If there are no opposing potential winning tiles then the bot will select a random tile
-            if (!gameCopy.indexOf('O') || !winTile) {
-                for (let i=0; i<gameCopy.length; i++) {
-                    const botChoice = Math.floor(Math.random() * gameCopy.length);
-                    if (gameCopy[botChoice] === '') {
-                        idxOfTile = botChoice
-                        gameCopy[idxOfTile] = 'O';
-                        break;
-                    }
-                    
-                }
-            }
-            if (!chanceToWin && idxOfTile) {
-                gameCopy[idxOfTile] = state.turn;
-            }
-            state.game = gameCopy;
-            state.botPlacement = winTile ? winTile : idxOfTile;
+        // Updates the game set with the bots chosen tile
+        bot: (state, action) => {
+            const gridCopy = [...state.game];
+            gridCopy[action.payload] = 'O'; 
+            state.botPlacement = action.payload;
+            state.game = gridCopy;
+        },
+        gameNumber: (state) => {
+            state.gameCounter += 1
         }
     }
 })
 
-export const { grid, checkWinner, reset, whoseTurn, bot } = winnerSlice.actions;
+export const { playerChoice, checkWinner, reset, whoseTurn, bot, gameNumber } = winnerSlice.actions;
 export default winnerSlice.reducer;

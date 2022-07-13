@@ -1,0 +1,23 @@
+.score {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    right: 0;
+    padding: 1rem;
+}
+
+.new-game {
+     padding: 0.5rem;
+     border: 1px solid white;
+     cursor: pointer;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.scoreboard {
+    border: 1px solid white;
+    border-radius: 5px;
+    padding: 1rem;
+}

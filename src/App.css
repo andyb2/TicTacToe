@@ -6,11 +6,12 @@ html, body {
 
 body {
   box-sizing: border-box;
+  color: white;
+  background: black;
 }
 
 button {
   padding: 0;
   border: none;
   background-color: none;
-
 }
