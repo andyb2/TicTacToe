@@ -6,3 +6,9 @@ If the human user has a chance to win then the bot will decide if they can win o
 
 # Website
 <https://andyb2.github.io/tictactoe/>
+
+# Tech
+
+* React
+* Typescript
+* Redux Toolkit
