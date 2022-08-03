@@ -1,7 +1,7 @@
 import '../style/tile.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { playerChoice, checkWinner, whoseTurn, reset } from '../store/reducer';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Game } from '../types';
 
 interface IProps {

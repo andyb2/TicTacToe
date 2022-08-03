@@ -1,23 +1,37 @@
-.score {
+.scoreContainter {
     position: fixed;
+    top: 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    right: 0;
-    padding: 1rem;
+    gap: 1.5rem;
+    padding: 0.5rem;
+}
+
+.new-game-container {
+    display: flex;
+    flex-direction: column;
 }
 
 .new-game {
-     padding: 0.5rem;
-     border: 1px solid white;
-     cursor: pointer;
+    padding: 0.5rem;
+    border: 1px solid white;
+    cursor: pointer;
     border-radius: 5px;
-    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.score {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
 }
 
 .scoreboard {
-    border: 1px solid white;
-    border-radius: 5px;
-    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.game-counter {
+    text-align: center;
+    margin-bottom: 0.2rem;
 }

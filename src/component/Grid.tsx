@@ -15,7 +15,6 @@ const Grid = () => {
     useEffect(() => {
         if ( gameCounter % 2 === 1) {
             dispatch(whoseTurn('X'));
-            console.log(turn)
         }
     }, [gameCounter])
 
